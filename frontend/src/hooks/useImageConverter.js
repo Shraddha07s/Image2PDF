@@ -4,10 +4,8 @@ import { validateFile, getImageDimensions, downloadBlob } from '../utils/fileHel
 import { convertImagesToPDF } from '../services/api';
 
 export const useImageConverter = () => {
-  // Theme state (dark / light)
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('image2pdf_theme') || 'dark';
-  });
+  // Always dark theme for PageForge professional IDE feel
+  const [theme] = useState('dark');
 
   // Images state array
   const [images, setImages] = useState([]);
@@ -31,37 +29,26 @@ export const useImageConverter = () => {
   const [previewZoomImage, setPreviewZoomImage] = useState(null); // single image for zoom modal
   const [history, setHistory] = useState(() => {
     try {
-      const saved = localStorage.getItem('image2pdf_history');
+      const saved = localStorage.getItem('pageforge_history');
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
     }
   });
 
-  // Sync theme with HTML document root element
+  // Keep dark class on HTML root
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('image2pdf_theme', theme);
-  }, [theme]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
   // Sync history with localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('image2pdf_history', JSON.stringify(history.slice(0, 10)));
+      localStorage.setItem('pageforge_history', JSON.stringify(history.slice(0, 10)));
     } catch (e) {
       console.error('Failed to save history:', e);
     }
   }, [history]);
-
-  // Toggle Theme
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
 
   // Add multiple files
   const addImages = useCallback(async (newFiles) => {
@@ -99,8 +86,30 @@ export const useImageConverter = () => {
 
     if (validItems.length > 0) {
       setImages((prev) => [...prev, ...validItems]);
-      toast.success(`Added ${validItems.length} image${validItems.length > 1 ? 's' : ''}`);
+      toast.success(`Imported ${validItems.length} page${validItems.length > 1 ? 's' : ''}`);
     }
+  }, []);
+
+  // Duplicate an existing page
+  const duplicateImage = useCallback((id) => {
+    setImages((prev) => {
+      const index = prev.findIndex((img) => img.id === id);
+      if (index === -1) return prev;
+
+      const source = prev[index];
+      const newId = `img-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      const copy = {
+        ...source,
+        id: newId,
+        name: `${source.name.replace(/(\.[^.]+)$/, '')} (Copy)${source.name.match(/\.[^.]+$/)?.[0] || ''}`,
+      };
+
+      const updated = [...prev];
+      updated.splice(index + 1, 0, copy);
+      return updated;
+    });
+    toast.success('Page duplicated');
   }, []);
 
   // Remove single image
@@ -112,7 +121,7 @@ export const useImageConverter = () => {
       }
       return prev.filter((img) => img.id !== id);
     });
-    toast.success('Image removed');
+    toast.success('Page removed');
   }, []);
 
   // Clear all images
@@ -122,7 +131,7 @@ export const useImageConverter = () => {
     });
     setImages([]);
     setPdfResult(null);
-    toast.success('All images cleared');
+    toast.success('All pages cleared');
   }, [images]);
 
   // Rotate single image (clockwise or counter-clockwise)
@@ -140,7 +149,7 @@ export const useImageConverter = () => {
     );
   }, []);
 
-  // Reorder images list (for drag-and-drop sortable)
+  // Reorder images list
   const reorderImages = useCallback((newOrderedImages) => {
     setImages(newOrderedImages);
   }, []);
@@ -162,13 +171,13 @@ export const useImageConverter = () => {
       password: '',
       pageNumbers: false,
     });
-    toast.success('Settings reset to defaults');
+    toast.success('Settings reset');
   }, []);
 
   // Trigger Conversion API
   const convert = useCallback(async () => {
     if (images.length === 0) {
-      toast.error('Please upload at least one image before converting!');
+      toast.error('Add at least one image to compile PDF');
       return;
     }
 
@@ -178,16 +187,13 @@ export const useImageConverter = () => {
     try {
       const formData = new FormData();
       
-      // Append images in exact user-ordered sequence
       images.forEach((img) => {
         formData.append('images', img.file);
       });
 
-      // Rotations array matching image sequence
       const rotations = images.map((img) => img.rotation);
       formData.append('rotations', JSON.stringify(rotations));
 
-      // Append settings
       formData.append('pageSize', settings.pageSize);
       formData.append('orientation', settings.orientation);
       formData.append('margin', settings.margin);
@@ -217,7 +223,6 @@ export const useImageConverter = () => {
 
       setPdfResult(pdfObj);
 
-      // Add entry to history
       setHistory((prev) => [
         {
           id: `hist-${Date.now()}`,
@@ -229,10 +234,10 @@ export const useImageConverter = () => {
         ...prev,
       ]);
 
-      toast.success('PDF generated successfully!');
+      toast.success('PDF compiled successfully!');
     } catch (error) {
       console.error('Conversion failed:', error);
-      toast.error(error.message || 'Failed to convert images to PDF.');
+      toast.error(error.message || 'PDF compilation failed.');
     } finally {
       setIsConverting(false);
     }
@@ -242,15 +247,15 @@ export const useImageConverter = () => {
   const handleDownload = useCallback(() => {
     if (pdfResult && pdfResult.blob) {
       downloadBlob(pdfResult.blob, pdfResult.filename);
-      toast.success('Download started');
+      toast.success('Downloading PDF');
     }
   }, [pdfResult]);
 
   return {
     theme,
-    toggleTheme,
     images,
     addImages,
+    duplicateImage,
     removeImage,
     clearAllImages,
     rotateImage,

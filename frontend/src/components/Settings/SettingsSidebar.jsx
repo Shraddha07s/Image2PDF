@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import {
+  FileText,
   Sliders,
-  FileSpreadsheet,
-  Compass,
   Maximize,
-  SlidersHorizontal,
   Lock,
   Hash,
   RotateCcw,
   Eye,
   EyeOff,
   Sparkles,
+  ShieldAlert,
 } from 'lucide-react';
 import { calculateEstimatedPdfSize } from '../../utils/fileHelpers';
 
@@ -24,134 +23,132 @@ const SettingsSidebar = ({
   const estimatedSize = calculateEstimatedPdfSize(images, settings);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+    <div className="w-80 bg-[#151B23] border-l border-[rgba(255,255,255,0.08)] flex flex-col h-full select-none">
       
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-4">
+      {/* Panel Header */}
+      <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
-            <Sliders className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">
-              PDF Settings
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Customize layout and output parameters
-            </p>
-          </div>
+          <Sliders className="w-4 h-4 text-blue-500" />
+          <span className="font-mono text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            PDF Settings
+          </span>
         </div>
 
         <button
           onClick={resetSettings}
-          className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+          className="p-1 text-slate-400 hover:text-white rounded hover:bg-[#1B2430] transition"
           title="Reset to defaults"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Settings Form Controls */}
-      <div className="space-y-5">
+      {/* Settings Options Scrollable Body */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
 
-        {/* 1. Page Size */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-500" />
-            <span>Page Size</span>
+        {/* Section 1: Document */}
+        <div className="space-y-2.5">
+          <label className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+            DOCUMENT
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'A4', label: 'A4' },
-              { id: 'Letter', label: 'Letter' },
-              { id: 'Original', label: 'Original' },
-            ].map((size) => (
-              <button
-                key={size.id}
-                type="button"
-                onClick={() => updateSetting('pageSize', size.id)}
-                className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
-                  settings.pageSize === size.id
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                    : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                {size.label}
-              </button>
-            ))}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300">Filename</span>
+            <input
+              type="text"
+              value={settings.filename}
+              onChange={(e) => updateSetting('filename', e.target.value)}
+              placeholder="converted.pdf"
+              className="w-full px-3 py-1.5 text-xs rounded-md bg-[#0D1117] text-slate-100 border border-[rgba(255,255,255,0.08)] focus:outline-none focus:border-[#3B82F6] font-mono"
+            />
           </div>
         </div>
 
-        {/* 2. Orientation */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
-            <Compass className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Orientation</span>
+        {/* Section 2: Page Layout */}
+        <div className="space-y-3 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+          <label className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+            PAGE LAYOUT
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { id: 'portrait', label: 'Portrait' },
-              { id: 'landscape', label: 'Landscape' },
-            ].map((orient) => (
-              <button
-                key={orient.id}
-                type="button"
-                onClick={() => updateSetting('orientation', orient.id)}
-                disabled={settings.pageSize === 'Original'}
-                className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
-                  settings.orientation === orient.id && settings.pageSize !== 'Original'
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
-                    : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed'
-                }`}
-              >
-                {orient.label}
-              </button>
-            ))}
+
+          {/* Page Size Segmented Control */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300">Page Size</span>
+            <div className="segmented-control">
+              {[
+                { id: 'A4', label: 'A4' },
+                { id: 'Letter', label: 'Letter' },
+                { id: 'Original', label: 'Original' },
+              ].map((size) => (
+                <button
+                  key={size.id}
+                  type="button"
+                  onClick={() => updateSetting('pageSize', size.id)}
+                  className={`segmented-option ${settings.pageSize === size.id ? 'active' : ''}`}
+                >
+                  {size.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Orientation Segmented Control */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300">Orientation</span>
+            <div className="segmented-control">
+              {[
+                { id: 'portrait', label: 'Portrait' },
+                { id: 'landscape', label: 'Landscape' },
+              ].map((orient) => (
+                <button
+                  key={orient.id}
+                  type="button"
+                  disabled={settings.pageSize === 'Original'}
+                  onClick={() => updateSetting('orientation', orient.id)}
+                  className={`segmented-option ${
+                    settings.orientation === orient.id && settings.pageSize !== 'Original' ? 'active' : ''
+                  }`}
+                >
+                  {orient.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Margins Segmented Control */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300">Margin</span>
+            <div className="segmented-control">
+              {[
+                { id: 'none', label: 'None' },
+                { id: 'small', label: 'Small' },
+                { id: 'medium', label: 'Med' },
+                { id: 'large', label: 'Large' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => updateSetting('margin', m.id)}
+                  className={`segmented-option ${settings.margin === m.id ? 'active' : ''}`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* 3. Margins */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
-            <Maximize className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Margins</span>
-          </label>
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { id: 'none', label: 'None' },
-              { id: 'small', label: 'Small' },
-              { id: 'medium', label: 'Med' },
-              { id: 'large', label: 'Large' },
-            ].map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => updateSetting('margin', m.id)}
-                className={`py-1.5 px-2 text-xs font-semibold rounded-xl border transition-all ${
-                  settings.margin === m.id
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 4. Image Quality Preset & Compression Slider */}
-        <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+        {/* Section 3: Compression */}
+        <div className="space-y-3 pt-2 border-t border-[rgba(255,255,255,0.06)]">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
-              <span>Image Quality</span>
+            <label className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+              COMPRESSION
             </label>
-            <span className="text-xs font-mono font-semibold text-amber-600 dark:text-amber-400">
-              {settings.compressionLevel}%
+            <span className="text-xs font-mono font-semibold text-blue-400">
+              {settings.compressionLevel}% Quality
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          {/* Quality Segmented Control */}
+          <div className="segmented-control">
             {[
               { id: 'high', label: 'High (92%)', val: 92 },
               { id: 'medium', label: 'Med (75%)', val: 75 },
@@ -164,11 +161,7 @@ const SettingsSidebar = ({
                   updateSetting('quality', q.id);
                   updateSetting('compressionLevel', q.val);
                 }}
-                className={`py-1.5 px-2 text-[11px] font-semibold rounded-xl border transition-all ${
-                  settings.compressionLevel === q.val
-                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
+                className={`segmented-option ${settings.compressionLevel === q.val ? 'active' : ''}`}
               >
                 {q.label}
               </button>
@@ -183,74 +176,55 @@ const SettingsSidebar = ({
             step="5"
             value={settings.compressionLevel}
             onChange={(e) => updateSetting('compressionLevel', parseInt(e.target.value))}
-            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            className="w-full h-1.5 bg-[#0D1117] rounded-lg appearance-none cursor-pointer accent-blue-500 border border-[rgba(255,255,255,0.08)]"
           />
         </div>
 
-        {/* 5. Custom Output Filename */}
-        <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-            Custom PDF Filename
+        {/* Section 4: Security & Options */}
+        <div className="space-y-3 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+          <label className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+            SECURITY & OPTIONS
           </label>
-          <input
-            type="text"
-            value={settings.filename}
-            onChange={(e) => updateSetting('filename', e.target.value)}
-            placeholder="converted.pdf"
-            className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-          />
-        </div>
 
-        {/* 6. Password Protection (Optional) */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
-            <Lock className="w-3.5 h-3.5 text-purple-500" />
-            <span>Protect with Password</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={settings.password}
-              onChange={(e) => updateSetting('password', e.target.value)}
-              placeholder="Optional PDF password"
-              className="w-full px-3 py-2 pr-9 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            </button>
+          {/* Password Protection */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300">Password Encryption</span>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={settings.password}
+                onChange={(e) => updateSetting('password', e.target.value)}
+                placeholder="Optional PDF Password"
+                className="w-full px-3 py-1.5 pr-8 text-xs rounded-md bg-[#0D1117] text-slate-100 border border-[rgba(255,255,255,0.08)] focus:outline-none focus:border-blue-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* 7. Automatic Page Numbers Toggle */}
-        <div className="flex items-center justify-between py-1">
-          <label htmlFor="pageNumbers" className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center space-x-2 cursor-pointer">
-            <Hash className="w-3.5 h-3.5 text-blue-500" />
-            <span>Add Page Numbers</span>
-          </label>
-          <input
-            id="pageNumbers"
-            type="checkbox"
-            checked={settings.pageNumbers}
-            onChange={(e) => updateSetting('pageNumbers', e.target.checked)}
-            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 cursor-pointer"
-          />
+          {/* Page Numbers Toggle */}
+          <div className="flex items-center justify-between py-1">
+            <span className="text-xs text-slate-300">Automatic Page Numbers</span>
+            <input
+              type="checkbox"
+              checked={settings.pageNumbers}
+              onChange={(e) => updateSetting('pageNumbers', e.target.checked)}
+              className="w-4 h-4 rounded bg-[#0D1117] border-[rgba(255,255,255,0.12)] text-blue-600 focus:ring-0 cursor-pointer"
+            />
+          </div>
         </div>
 
       </div>
 
-      {/* Estimated Size Footer Box */}
-      <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-1.5 text-blue-700 dark:text-blue-300 font-medium">
-          <Sparkles className="w-4 h-4 text-blue-500" />
-          <span>Estimated PDF Size:</span>
-        </div>
-        <span className="font-bold text-blue-800 dark:text-blue-200 font-mono">
-          {estimatedSize}
-        </span>
+      {/* Pinned Estimated PDF Size Box */}
+      <div className="p-3 border-t border-[rgba(255,255,255,0.08)] bg-[#151B23] flex items-center justify-between text-xs font-mono">
+        <span className="text-slate-400">Est. Size:</span>
+        <span className="font-bold text-blue-400">{estimatedSize}</span>
       </div>
 
     </div>

@@ -1,49 +1,92 @@
-import React from 'react';
-import { Loader2, Sparkles, FileCheck2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Loader2, CheckCircle2, Cpu } from 'lucide-react';
+
+const STEPS = [
+  'Preparing images',
+  'Optimizing quality',
+  'Generating pages',
+  'Compressing',
+  'Finalizing PDF',
+];
 
 const LoadingOverlay = ({ isConverting, progress = 0 }) => {
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isConverting) {
+      setCurrentStepIndex(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentStepIndex((prev) => {
+        if (prev < STEPS.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 600);
+
+    return () => clearInterval(interval);
+  }, [isConverting]);
+
   if (!isConverting) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-fade-in">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1117]/80 backdrop-blur-sm p-4 animate-fade-in select-none">
+      <div className="bg-[#151B23] border border-[rgba(255,255,255,0.12)] rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-6">
         
-        {/* Animated Icon */}
-        <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-100 dark:border-slate-800"></div>
-          <div
-            className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"
-          ></div>
-          <FileCheck2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-pulse" />
-        </div>
-
-        {/* Status Text */}
-        <div className="space-y-2">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center justify-center space-x-2">
-            <span>Converting Images...</span>
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Please wait while we process, compress, and compile your pages into a PDF
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 px-1">
-            <span>{progress < 100 ? 'Uploading Files' : 'Building PDF Document'}</span>
-            <span className="font-mono">{progress}%</span>
+        {/* Header */}
+        <div className="flex items-center space-x-3 border-b border-[rgba(255,255,255,0.08)] pb-4">
+          <div className="w-8 h-8 rounded-lg bg-[#1B2430] border border-blue-500/40 flex items-center justify-center text-blue-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+          <div>
+            <h3 className="font-mono text-sm font-bold text-white">PAGEFORGE Engine</h3>
+            <p className="text-[11px] text-slate-400 font-mono">Compiling document pipeline...</p>
+          </div>
+        </div>
+
+        {/* Animated Progress Timeline */}
+        <div className="space-y-2.5 font-mono text-xs">
+          {STEPS.map((step, idx) => {
+            const isDone = idx < currentStepIndex;
+            const isCurrent = idx === currentStepIndex;
+            return (
+              <div key={step} className="flex items-center space-x-3">
+                {isDone ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                ) : isCurrent ? (
+                  <span className="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin shrink-0"></span>
+                ) : (
+                  <span className="w-4 h-4 rounded-full border border-slate-700 shrink-0"></span>
+                )}
+                <span
+                  className={
+                    isDone
+                      ? 'text-slate-400 line-through'
+                      : isCurrent
+                      ? 'text-blue-400 font-bold'
+                      : 'text-slate-600'
+                  }
+                >
+                  {step}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Upload/Processing Progress Bar */}
+        <div className="space-y-1">
+          <div className="w-full bg-[#0D1117] rounded-full h-1.5 overflow-hidden border border-[rgba(255,255,255,0.06)]">
             <div
-              className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full transition-all duration-300 ease-out"
-              style={{ width: `${Math.max(10, progress)}%` }}
+              className="bg-blue-500 h-full transition-all duration-300 ease-out"
+              style={{ width: `${Math.max(15, progress)}%` }}
             ></div>
           </div>
-        </div>
-
-        <div className="inline-flex items-center space-x-1.5 text-[11px] text-slate-400 dark:text-slate-500">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>High quality Pillow & img2pdf conversion</span>
+          <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-0.5">
+            <span>Local process</span>
+            <span>{progress}%</span>
+          </div>
         </div>
 
       </div>
